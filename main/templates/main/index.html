@@ -1,7 +1,15 @@
 {% extends 'main/base.html' %}
 
-{% block title %}Главная страница{% endblock %}
+{% block title %}Главная{% endblock %}
 
 {% block content %}
-    <h1>Отлично, работаем</h1>
+<h1>Добро пожаловать, {{ request.user.first_name }}!</h1>
+
+{% if request.user.is_authenticated %}
+    <p>Вы вошли как {{ request.user.username }}.</p>
+    <a href="{% url 'main:logout' %}" class="btn btn-outline-dark">Выйти</a>
+{% else %}
+    <p>Вы не вошли в систему.</p>
+    <a href="{% url 'main:login' %}" class="btn btn-dark">Войти</a>
+{% endif %}
 {% endblock %}
