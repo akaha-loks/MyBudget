@@ -1,10 +1,32 @@
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 import re
+from .models import Goal
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+from .models import Transaction, Category
+from datetime import date
+
 
 def index(request):
-    return render(request, 'main/index.html')
+    balance = 12500
+    income = 20000
+    expenses = 7500
+
+    total = income + expenses
+    income_percent = round(income / total * 100, 1) if total else 0
+    expense_percent = round(expenses / total * 100, 1) if total else 0
+
+    return render(request, 'main/index.html', {
+        'balance': balance,
+        'income': income,
+        'expenses': expenses,
+        'income_percent': income_percent,
+        'expense_percent': expense_percent,
+    })
+
 
 def user_register(request):
     if request.method == 'POST':
@@ -39,3 +61,37 @@ def user_logout(request):
     logout(request)
     return redirect('main:login')
 
+@login_required
+def goals_list(request):
+    goals = Goal.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'main/goals/goals.html', {'goals': goals})
+
+def goal_add(request):
+    return HttpResponse("Здесь будет форма добавления цели (в разработке).")
+
+@login_required
+def reports(request):
+    user = request.user
+
+    # Суммируем доходы и расходы
+    total_income = Transaction.objects.filter(user=user, type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_expense = Transaction.objects.filter(user=user, type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    balance = total_income - total_expense
+
+    # Суммируем расходы по категориям
+    category_data = (
+        Transaction.objects
+        .filter(user=user, type='expense')
+        .values('category__name')
+        .annotate(total=Sum('amount'))
+        .order_by('-total')
+    )
+
+    context = {
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'balance': balance,
+        'category_data': category_data,
+        'today': date.today(),
+    }
+    return render(request, 'main/reports.html', context)

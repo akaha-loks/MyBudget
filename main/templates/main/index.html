@@ -3,13 +3,74 @@
 {% block title %}Главная{% endblock %}
 
 {% block content %}
-<h1>Добро пожаловать, {{ request.user.first_name }}!</h1>
+<div class="container mt-4">
+    <h2 class="mb-4">Добро пожаловать, {{ request.user.first_name }}!</h2>
 
-{% if request.user.is_authenticated %}
-    <p>Вы вошли как {{ request.user.username }}.</p>
-    <a href="{% url 'main:logout' %}" class="btn btn-outline-dark">Выйти</a>
-{% else %}
-    <p>Вы не вошли в систему.</p>
-    <a href="{% url 'main:login' %}" class="btn btn-dark">Войти</a>
-{% endif %}
+    {% if request.user.is_authenticated %}
+        <div class="row g-4">
+            <!-- Баланс -->
+            <div class="col-md-4">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Баланс</h5>
+                        <p class="display-6 text-primary">{{ balance }} сом</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Доходы -->
+            <div class="col-md-4">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Доходы</h5>
+                        <p class="display-6">{{ income }} сом</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Расходы -->
+            <div class="col-md-4">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Расходы</h5>
+                        <p class="display-6">{{ expenses }} сом</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Прогресс-бар доходы/расходы -->
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title text-center mb-3">Соотношение доходов и расходов</h5>
+
+                        <div class="progress" style="height: 30px;">
+                            <div
+                                class="progress-bar bg-success"
+                                role="progressbar"
+                                style="width: {{ income_percent }}%;"
+                                aria-valuenow="{{ income_percent }}"
+                                aria-valuemin="0"
+                                aria-valuemax="100">
+                                Доходы {{ income_percent }}%
+                            </div>
+                            <div
+                                class="progress-bar bg-danger"
+                                role="progressbar"
+                                style="width: {{ expense_percent }}%;"
+                                aria-valuenow="{{ expense_percent }}"
+                                aria-valuemin="0"
+                                aria-valuemax="100">
+                                Расходы {{ expense_percent }}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>Вы не вошли в систему.</p>
+        <a href="{% url 'main:login' %}" class="btn btn-dark">Войти</a>
+    {% endif %}
+</div>
 {% endblock %}
