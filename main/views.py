@@ -9,11 +9,12 @@ from django.db.models import Sum
 from .models import Transaction, Category
 from datetime import date
 
-
+@login_required
 def index(request):
-    balance = 12500
-    income = 20000
-    expenses = 7500
+    user = request.user  # type: ignore[assignment]
+    income: float = Transaction.objects.filter(user=user, type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    expenses: float = Transaction.objects.filter(user=user, type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    balance = income - expenses
 
     total = income + expenses
     income_percent = round(income / total * 100, 1) if total else 0
@@ -66,6 +67,7 @@ def goals_list(request):
     goals = Goal.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'main/goals/goals.html', {'goals': goals})
 
+@login_required
 def goal_add(request):
     return HttpResponse("Здесь будет форма добавления цели (в разработке).")
 

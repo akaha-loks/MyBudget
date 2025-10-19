@@ -1,28 +1,29 @@
 {% extends 'main/base.html' %}
 {% block content %}
 <div class="container mt-4">
-    <h2>Отчёты за {{ today }}</h2>
-    <hr>
+    <h2 class="mb-3">Отчёты за {{ today }}</h2>
     <div class="row mt-4">
         <div class="col-md-4">
-            <div class="card p-3 mb-3">
+            <div class="card p-3 mb-3 text-center shadow-sm">
                 <h5>Баланс</h5>
-                <h3>{{ balance }} сом</h3>
+                <h3 class="display-6">{{ balance }} сом</h3>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card p-3 mb-3 bg-success-subtle">
+            <div class="card p-3 mb-3 text-center shadow-sm">
                 <h5>Доходы</h5>
-                <h3>{{ total_income }} сом</h3>
+                <h3 class="display-6">{{ total_income }} сом</h3>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card p-3 mb-3 bg-danger-subtle">
+            <div class="card p-3 mb-3 text-center shadow-sm">
                 <h5>Расходы</h5>
-                <h3>{{ total_expense }} сом</h3>
+                <h3 class="display-6">{{ total_expense }} сом</h3>
             </div>
         </div>
     </div>
+
+
 
     <h4 class="mt-4">Расходы по категориям</h4>
     <table class="table table-bordered mt-2">

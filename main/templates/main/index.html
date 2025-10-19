@@ -13,7 +13,7 @@
                 <div class="card shadow-sm text-center">
                     <div class="card-body">
                         <h5 class="card-title">Баланс</h5>
-                        <p class="display-6 text-primary">{{ balance }} сом</p>
+                        <p class="display-6">{{ balance }} сом</p>
                     </div>
                 </div>
             </div>
@@ -42,32 +42,40 @@
             <div class="col-md-12">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title text-center mb-3">Соотношение доходов и расходов</h5>
+                        <h5 class="card-title text-center mb-3">
+                            Соотношение доходов и расходов
+                        </h5>
 
-                        <div class="progress" style="height: 30px;">
-                            <div
-                                class="progress-bar bg-success"
-                                role="progressbar"
-                                style="width: {{ income_percent }}%;"
-                                aria-valuenow="{{ income_percent }}"
-                                aria-valuemin="0"
-                                aria-valuemax="100">
-                                Доходы {{ income_percent }}%
+                        {% if income == 0 and expenses == 0 %}
+                            <div class="text-center text-muted py-3">
+                                Нет данных для отображения
                             </div>
-                            <div
-                                class="progress-bar bg-danger"
-                                role="progressbar"
-                                style="width: {{ expense_percent }}%;"
-                                aria-valuenow="{{ expense_percent }}"
-                                aria-valuemin="0"
-                                aria-valuemax="100">
-                                Расходы {{ expense_percent }}%
+                        {% else %}
+                            <div class="progress" style="height: 30px;">
+                                <div
+                                    class="progress-bar bg-success"
+                                    role="progressbar"
+                                    style="width: {{ income_percent }}%;"
+                                    aria-valuenow="{{ income_percent }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100">
+                                    Доходы {{ income_percent }}%
+                                </div>
+                                <div
+                                    class="progress-bar bg-danger"
+                                    role="progressbar"
+                                    style="width: {{ expense_percent }}%;"
+                                    aria-valuenow="{{ expense_percent }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100">
+                                    Расходы {{ expense_percent }}%
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-        </div>
+        </div> <!-- закрывает row -->
     {% else %}
         <p>Вы не вошли в систему.</p>
         <a href="{% url 'main:login' %}" class="btn btn-dark">Войти</a>
