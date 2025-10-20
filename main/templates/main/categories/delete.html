@@ -1,0 +1,12 @@
+{% extends 'main/base.html' %}
+{% block title %}Удалить категорию{% endblock %}
+{% block content %}
+<div class="container mt-4 text-center" style="max-width: 500px;">
+    <h4>Удалить категорию <strong>"{{ category.name }}"</strong>?</h4>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger mt-3">Удалить</button>
+        <a href="{% url 'main:categories_list' %}" class="btn btn-secondary mt-3">Отмена</a>
+    </form>
+</div>
+{% endblock %}

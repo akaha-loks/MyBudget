@@ -1,7 +1,10 @@
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Category(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='categories')  # ← добавлено
     TYPE_CHOICES = [
         ('income', 'Доход'),
         ('expense', 'Расход'),
@@ -13,7 +16,6 @@ class Category(models.Model):
     def __str__(self):
         return f"{self.name} ({'Доход' if self.type == 'income' else 'Расход'})"
 
-
 TYPE_CHOICES = [
     ('income', 'Доход'),
     ('expense', 'Расход'),
@@ -24,7 +26,7 @@ class Transaction(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField(blank=True)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateTimeField(default=timezone.now)
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, verbose_name='Тип операции')  # ← вот это новое поле
 
     def __str__(self):

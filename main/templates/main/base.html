@@ -18,8 +18,8 @@
 
                 {% if user.is_authenticated %}
                 <div class="btn-group" role="group" aria-label="Добавить транзакцию">
-                    <a class="btn btn-outline-danger me-1">Расход</a>
-                    <a class="btn btn-outline-success">Доход</a>
+                    <a class="btn btn-outline-danger me-1" href="{% url 'main:transaction_add' 'expense' %}">Расход</a>
+                    <a class="btn btn-outline-success" href="{% url 'main:transaction_add' 'income' %}">Доход</a>
                 </div>
                 {% endif %}
             </div>

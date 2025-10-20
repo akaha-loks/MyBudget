@@ -1,0 +1,29 @@
+{% extends 'main/base.html' %}
+{% block title %}Добавить категорию{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <h2 class="mb-3">Добавить категорию</h2>
+    <hr class="mx-auto" style="max-width: 600px;">
+
+    <form method="post" class="mx-auto text-start p-4 rounded shadow-sm bg-light" style="max-width: 500px;">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Название</label>
+            <input type="text" class="form-control" id="name" name="name" placeholder="Например: Еда, Зарплата" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="type" class="form-label">Тип</label>
+            <select class="form-select" id="type" name="type" required>
+                <option value="income">Доход</option>
+                <option value="expense">Расход</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">Добавить категорию</button>
+        <a href="{{ next_url }}" class="btn btn-outline-secondary w-100 mt-2">Отмена</a>
+    </form>
+</div>
+{% endblock %}

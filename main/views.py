@@ -3,11 +3,14 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 import re
+from django.utils import timezone
 from .models import Goal
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from .models import Transaction, Category
-from datetime import date
+from datetime import date, datetime
+from django.contrib import messages
+from django.urls import reverse
 
 @login_required
 def index(request):
@@ -97,3 +100,93 @@ def reports(request):
         'today': date.today(),
     }
     return render(request, 'main/reports.html', context)
+
+@login_required()
+def transaction_add(request, type):
+    now = timezone.localtime()
+    categories = Category.objects.filter(user=request.user, type=type)
+
+    type_map = {
+        'income': 'Доход',
+        'expense': 'Расход',
+    }
+    type_display = type_map.get(type, type)  # сразу передаем в шаблон
+
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+        category_id = request.POST.get('category')
+        category = Category.objects.get(id=category_id) if category_id else None
+        description = request.POST.get('description')
+        date_str = request.POST.get('date')
+        time_str = request.POST.get('time')
+
+        if date_str and time_str:
+            datetime_obj = timezone.make_aware(
+                timezone.datetime.fromisoformat(f"{date_str}T{time_str}")
+            )
+        else:
+            datetime_obj = now
+
+        Transaction.objects.create(
+            user=request.user,
+            category=category,
+            amount=amount,
+            description=description,
+            date=datetime_obj,
+            type=type
+        )
+        return redirect('main:index')
+
+    return render(request, 'main/transactions/add.html', {
+        'type': type,
+        'type_display': type_display,  # <-- передаем сюда
+        'categories': categories,
+        'now_date': now.date(),
+        'now_time': now.strftime('%H:%M')
+    })
+
+
+@login_required
+def categories_list(request):
+    categories = Category.objects.filter(user=request.user).order_by('type', 'name')
+    return render(request, 'main/categories/list.html', {'categories': categories})
+
+
+@login_required
+def category_add(request):
+    next_url = request.GET.get('next', reverse('main:index'))
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        type_ = request.POST.get('type')
+
+        if not name:
+            messages.error(request, 'Введите название категории.')
+        else:
+            Category.objects.create(user=request.user, name=name, type=type_)
+            messages.success(request, 'Категория добавлена.')
+            return redirect(next_url)
+
+    return render(request, 'main/categories/add.html', {'next_url': next_url})
+
+
+@login_required
+def category_edit(request, pk):
+    category = Category.objects.get(id=pk, user=request.user)
+    if request.method == 'POST':
+        category.name = request.POST.get('name')
+        category.type = request.POST.get('type')
+        category.save()
+        messages.success(request, 'Категория обновлена.')
+        return redirect('main:categories_list')
+    return render(request, 'main/categories/edit.html', {'category': category})
+
+
+@login_required
+def category_delete(request, pk):
+    category = Category.objects.get(id=pk, user=request.user)
+    if request.method == 'POST':
+        category.delete()
+        messages.success(request, 'Категория удалена.')
+        return redirect('main:categories_list')
+    return render(request, 'main/categories/delete.html', {'category': category})

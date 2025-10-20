@@ -5,14 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1015d755-3187-46d8-bbc0-a1ba09c78fd6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/main/templates/main/categories/add.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/main/templates/main/categories/delete.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/main/templates/main/categories/edit.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/main/templates/main/categories/list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/main/templates/main/transactions/add.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MyBudget/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/MyBudget/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/static/main/css/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/main/static/main/css/main.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db.sqlite3" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/migrations/0002_transaction_type_alter_transaction_amount_and_more.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/templates/main/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/main/templates/main/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/goals/goals.html" beforeDir="false" afterPath="$PROJECT_DIR$/main/templates/main/goals/goals.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/main/templates/main/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/reports.html" beforeDir="false" afterPath="$PROJECT_DIR$/main/templates/main/reports.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -129,6 +133,8 @@
       <workItem from="1760631733650" duration="3751000" />
       <workItem from="1760635518375" duration="2220000" />
       <workItem from="1760882769757" duration="1619000" />
+      <workItem from="1760888710625" duration="3145000" />
+      <workItem from="1760973493286" duration="3285000" />
     </task>
     <servers />
   </component>
@@ -142,11 +148,6 @@
           <url>file://$PROJECT_DIR$/MyBudget/settings.py</url>
           <line>40</line>
           <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main/urls.py</url>
-          <line>11</line>
-          <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
