@@ -2,7 +2,30 @@ body{
     background-color: rgb(228, 228, 228);
 }
 
-.text-outline {
-    -webkit-text-stroke: 1px #004a5c; /* Толщина и цвет обводки */
-    font-weight: bold
+.align-right {
+  float: right;
 }
+
+/* Цвет текста для доходов и расходов */
+.table-success td {
+    background-color: #d4edda !important; /* светло-зелёный фон */
+    color: #155724 !important;           /* тёмно-зелёный текст */
+    font-weight: 500;
+}
+
+.table-danger td {
+    background-color: #f8d7da !important; /* светло-красный фон */
+    color: #721c24 !important;            /* тёмно-красный текст */
+    font-weight: 500;
+}
+
+/* Граница таблицы */
+.table-bordered {
+    border: 2px solid #343a40; /* тёмная рамка вокруг всей таблицы */
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid #343a40; /* границы для ячеек */
+}
+

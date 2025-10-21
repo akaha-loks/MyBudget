@@ -3,13 +3,12 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="{% static 'main/css/main.css' %}">
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 fixed-top">
         <div class="container position-relative">
 
             <!-- Логотип и кнопки слева -->
@@ -34,12 +33,15 @@
                 </li>
                 {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/reports/' %}active{% endif %}" href="/reports/">Отчёты</a>
+                    <a class="nav-link {% if request.path == '/transactions/' %}active{% endif %}" href="{% url 'main:transactions_list' %}">Транзакции</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/goals/' %}active{% endif %}" href="/goals/">Цели</a>
+                    <a class="nav-link {% if request.path == '/reports/' %}active{% endif %}" href="{% url 'main:reports' %}">Отчёты</a>
                 </li>
-                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/goals/' %}active{% endif %}" href="{% url 'main:goals_list' %}">Цели</a>
+                </li>
+            {% endif %}
             </ul>
 
             <!-- Кнопка Войти/Выйти справа -->
@@ -54,7 +56,7 @@
         </div>
     </nav>
 
-
+    <div style="padding-top: 50px;"></div>
 
     <div class="container">
         {% block content %}

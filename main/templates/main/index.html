@@ -4,38 +4,44 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Добро пожаловать, {{ request.user.first_name }}!</h2>
-
+    <h2 class="text-center">Добро пожаловать, {{ request.user.first_name }}!</h2>
+    <hr class="mb-4">
     {% if request.user.is_authenticated %}
         <div class="row g-4">
             <!-- Баланс -->
             <div class="col-md-4">
-                <div class="card shadow-sm text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Баланс</h5>
-                        <p class="display-6">{{ balance }} сом</p>
+                <a href="{% url 'main:reports' %}" class="text-decoration-none">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Баланс</h5>
+                            <p class="display-6">{{ balance }} сом</p>
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Доходы -->
             <div class="col-md-4">
-                <div class="card shadow-sm text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Доходы</h5>
-                        <p class="display-6">{{ income }} сом</p>
+                <a href="{% url 'main:transaction_add' 'income' %}" class="text-decoration-none">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Доходы</h5>
+                            <p class="display-6">{{ income }} сом</p>
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Расходы -->
             <div class="col-md-4">
-                <div class="card shadow-sm text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Расходы</h5>
-                        <p class="display-6">{{ expenses }} сом</p>
+                <a href="{% url 'main:transaction_add' 'expense' %}" class="text-decoration-none">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Расходы</h5>
+                            <p class="display-6">{{ expenses }} сом</p>
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Прогресс-бар доходы/расходы -->
@@ -74,6 +80,38 @@
                         {% endif %}
                     </div>
                 </div>
+            </div>
+            <!-- История транзакций -->
+            <div class="col-md-12 mt-5">
+                <h5 class="text-center mb-3">История транзакций</h5>
+                <table class="table table-striped table-hover table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Дата</th>
+                            <th>Сумма</th>
+                            <th>Тип</th>
+                            <th>Категория</th>
+                            <th>Комментарий</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in transactions %}
+                        <tr onclick="window.location='{% url 'main:transactions_list' %}'" style="cursor: pointer;">
+                            <td>{{ t.date|date:"d/m/Y H:i" }}</td>
+                            <td class="{% if t.type == 'income' %}text-success{% elif t.type == 'expense' %}text-danger{% endif %}">{{ t.amount }} сом</td>
+                            <td class="{% if t.type == 'income' %}text-success{% elif t.type == 'expense' %}text-danger{% endif %}">{{ t.get_type_display }}</td>
+                            <td class="{% if t.type == 'income' %}text-success{% elif t.type == 'expense' %}text-danger{% endif %}">
+                                {% if t.category %}{{ t.category.name }}{% else %}Без категории{% endif %}
+                            </td>
+                            <td class="{% if t.type == 'income' %}text-success{% elif t.type == 'expense' %}text-danger{% endif %}">{{ t.description }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">Транзакций нет</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div> <!-- закрывает row -->
     {% else %}

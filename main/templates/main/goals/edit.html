@@ -1,0 +1,29 @@
+{% extends 'main/base.html' %}
+{% block title %}Редактировать цель{% endblock %}
+{% block content %}
+<div class="container mt-5" style="max-width: 500px;">
+    <h2 class="text-center mb-3">Редактировать цель</h2>
+    <hr class="mx-auto" style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Название</label>
+            <input type="text" name="name" class="form-control" value="{{ goal.name }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Целевая сумма</label>
+            <input type="number" name="target_amount" step="0.01" class="form-control" value="{{ goal.target_amount }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Текущая сумма</label>
+            <input type="number" name="current_amount" step="0.01" class="form-control" value="{{ goal.current_amount }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Срок достижения</label>
+            <input type="date" name="deadline" class="form-control" value="{{ goal.deadline|date:'Y-m-d' }}" required>
+        </div>
+        <button class="btn btn-dark w-100">Сохранить изменения</button>
+        <a href="{% url 'main:goals_list' %}" class="btn btn-secondary w-100 mt-2">Отмена</a>
+    </form>
+</div>
+{% endblock %}
