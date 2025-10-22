@@ -7,10 +7,11 @@ from .models import Goal
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from .models import Transaction, Category
-from datetime import date, datetime
+from datetime import date, datetime as dt, datetime, timedelta
 from django.contrib import messages
 from django.urls import reverse
 from decimal import Decimal, InvalidOperation
+import time
 
 
 
@@ -30,6 +31,9 @@ def index(request):
     # Последние 10 транзакций
     transactions = Transaction.objects.filter(user=user).order_by('-date')[:10]
 
+    # выборку целей
+    goals = Goal.objects.filter(user=user).order_by('deadline')[:5]
+
     return render(request, 'main/index.html', {
         'balance': balance,
         'income': income,
@@ -37,6 +41,7 @@ def index(request):
         'income_percent': income_percent,
         'expense_percent': expense_percent,
         'transactions': transactions,
+        'goals': goals,
     })
 
 
@@ -83,12 +88,17 @@ def goals_list(request):
 
 @login_required
 def goal_add(request):
+    # текущая дата + 1 месяц (30 дней)
+    now_struct = time.localtime()
+    today_date = datetime.fromtimestamp(time.mktime(now_struct)).date()
+    default_deadline = today_date + timedelta(days=30)
+
     if request.method == 'POST':
         name = request.POST.get('name')
         target = request.POST.get('target_amount')
-        deadline = request.POST.get('deadline')
+        deadline = request.POST.get('deadline') or str(default_deadline)
 
-        if not name or not target or not deadline:
+        if not name or not target:
             messages.error(request, "Заполните все поля!")
         else:
             try:
@@ -104,12 +114,14 @@ def goal_add(request):
                     target_amount=target_amount,
                     current_amount=Decimal('0.0'),
                     deadline=deadline,
-                    created_at=timezone.now()  # <-- обязательно добавляем
+                    created_at=timezone.now()
                 )
                 messages.success(request, "Цель успешно добавлена!")
                 return redirect('main:goals_list')
 
-    return render(request, 'main/goals/add.html')
+    return render(request, 'main/goals/add.html', {
+        'default_deadline': default_deadline.isoformat()
+    })
 
 
 @login_required
@@ -198,9 +210,28 @@ def reports(request):
 @login_required
 def transactions_list(request):
     user = request.user
-    transactions = Transaction.objects.filter(user=user).order_by('-date')
+    sort = request.GET.get('sort', '-date')  # сортировка по умолчанию: дата по убыванию
+    category_id = request.GET.get('category', '')  # выбранная категория
 
-    # Подсчёт доходов и расходов
+    # разрешённые поля для сортировки
+    allowed_sorts = ['date', '-date', 'amount', '-amount', 'type', '-type']
+    if sort not in allowed_sorts:
+        sort = '-date'
+
+    # получаем все категории пользователя для фильтра
+    categories = Category.objects.filter(user=user)
+
+    # базовый queryset
+    transactions = Transaction.objects.filter(user=user)
+
+    # фильтр по категории, если выбрана
+    if category_id:
+        transactions = transactions.filter(category_id=category_id)
+
+    # применяем сортировку
+    transactions = transactions.order_by(sort)
+
+    # Подсчёт доходов и расходов (по отфильтрованным транзакциям)
     income = transactions.filter(type='income').aggregate(total=Sum('amount'))['total'] or 0
     expenses = transactions.filter(type='expense').aggregate(total=Sum('amount'))['total'] or 0
 
@@ -214,14 +245,20 @@ def transactions_list(request):
         'expenses': expenses,
         'income_percent': income_percent,
         'expense_percent': expense_percent,
+        'current_sort': sort,
+        'categories': categories,
+        'selected_category': category_id
     })
 
-
-@login_required()
+@login_required
 def transaction_add(request, type):
-    now = timezone.localtime()
-    categories = Category.objects.filter(user=request.user, type=type)
+    # Получаем текущую локальную дату и время через time
+    now_struct = time.localtime()
+    now_date = time.strftime("%Y-%m-%d", now_struct)  # для input[type=date]
+    now_time = time.strftime("%H:%M", now_struct)     # для input[type=time]
+    tz = timezone.get_current_timezone()
 
+    categories = Category.objects.filter(user=request.user, type=type)
     type_map = {'income': 'Доход', 'expense': 'Расход'}
     type_display = type_map.get(type, type)
 
@@ -237,23 +274,27 @@ def transaction_add(request, type):
             return redirect(request.path)
 
         category_id = request.POST.get('category')
-        category = None
-        if category_id:
-            category = Category.objects.filter(id=category_id, user=request.user).first()
+        category = Category.objects.filter(id=category_id, user=request.user).first() if category_id else None
 
-        description = request.POST.get('description')
-        date_str = request.POST.get('date')
-        time_str = request.POST.get('time')
+        description = request.POST.get('description', '').strip()
+        date_str = request.POST.get('date', '').strip()   # "YYYY-MM-DD"
+        time_str = request.POST.get('time', '').strip()   # "HH:MM"
 
+        # создаём aware datetime с использованием time
         if date_str and time_str:
-            try:
-                datetime_obj = timezone.make_aware(
-                    timezone.datetime.fromisoformat(f"{date_str}T{time_str}")
-                )
-            except ValueError:
-                datetime_obj = now
+            naive_dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+        elif date_str:
+            # если только дата — ставим текущее время
+            t = time.localtime()
+            naive_dt = datetime.strptime(date_str, "%Y-%m-%d").replace(hour=t.tm_hour, minute=t.tm_min)
+        elif time_str:
+            # если только время — используем сегодняшнюю дату
+            today = time.strftime("%Y-%m-%d", now_struct)
+            naive_dt = datetime.strptime(f"{today} {time_str}", "%Y-%m-%d %H:%M")
         else:
-            datetime_obj = now
+            naive_dt = datetime.fromtimestamp(time.mktime(now_struct))  # fallback
+
+        datetime_obj = timezone.make_aware(naive_dt, tz)
 
         Transaction.objects.create(
             user=request.user,
@@ -270,8 +311,8 @@ def transaction_add(request, type):
         'type': type,
         'type_display': type_display,
         'categories': categories,
-        'now_date': now.date(),
-        'now_time': now.strftime('%H:%M')
+        'now_date': now_date,
+        'now_time': now_time
     })
 
 
@@ -321,7 +362,6 @@ def transaction_delete(request, pk):
         messages.success(request, "Транзакция удалена.")
         return redirect('main:transactions_list')
     return render(request, 'main/transactions/delete.html', {'transaction': transaction})
-
 
 
 @login_required

@@ -6,26 +6,23 @@ body{
   float: right;
 }
 
-/* Цвет текста для доходов и расходов */
-.table-success td {
-    background-color: #d4edda !important; /* светло-зелёный фон */
-    color: #155724 !important;           /* тёмно-зелёный текст */
-    font-weight: 500;
+/* Стилизация ссылок в заголовках таблицы */
+.table thead th a {
+    color: inherit;           /* Наследуем цвет текста из th */
+    text-decoration: none;    /* Убираем подчеркивание */
+    font-weight: bold;         /* Можно сделать жирнее */
+    transition: color 0.2s;
 }
 
-.table-danger td {
-    background-color: #f8d7da !important; /* светло-красный фон */
-    color: #721c24 !important;            /* тёмно-красный текст */
-    font-weight: 500;
+.table thead th a:hover {
+    color: #0d6efd;           /* Или любой другой цвет при наведении */
+    text-decoration: underline; /* Можно подчеркнуть при наведении */
 }
 
-/* Граница таблицы */
-.table-bordered {
-    border: 2px solid #343a40; /* тёмная рамка вокруг всей таблицы */
-}
-
-.table-bordered th,
-.table-bordered td {
-    border: 1px solid #343a40; /* границы для ячеек */
+/* Для селекта внутри th */
+.table thead th select.form-select {
+    font-size: 0.9em;
+    padding: 0.25rem 0.5rem;
+    height: auto;
 }
 

@@ -10,10 +10,43 @@
     <table class="table table-striped table-hover table-bordered">
         <thead class="table-dark">
             <tr>
-                <th>Дата</th>
-                <th>Сумма</th>
-                <th>Тип</th>
-                <th>Категория</th>
+                <th>
+                    <a class="text-white fw-bold text-decoration-none" href="?sort={% if current_sort == 'date' %}-date{% else %}date{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                        Дата
+                    </a>
+                </th>
+                <th>
+                    <a class="text-white fw-bold text-decoration-none" href="?sort={% if current_sort == 'amount' %}-amount{% else %}amount{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                        Сумма
+                    </a>
+                </th>
+                <th>
+                    <a class="text-white fw-bold text-decoration-none" href="?sort={% if current_sort == 'type' %}-type{% else %}type{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                        Тип
+                    </a>
+                </th>
+                <th>
+                    <!-- Селект прямо в шапке -->
+                    <form method="get" class="m-0 p-0 d-inline">
+                        <select name="category" class="form-select form-select-sm"
+                                onchange="this.form.submit()"
+                                style="font-family: Arial, sans-serif;
+                                       font-size: 0.9rem;
+                                       color: #e4e4e4;
+                                       background-color: #1e1f22;
+                                       border-radius: 0.25rem;
+                                       border-color: #1e1f22;
+                                       padding: 0.25rem 0.5rem;">
+                            <option value="">Все категории</option>
+                            {% for c in categories %}
+                                <option value="{{ c.id }}" {% if selected_category == c.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ c.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <input type="hidden" name="sort" value="{{ current_sort }}">
+                    </form>
+                </th>
                 <th>Комментарий</th>
                 <th>Действия</th>
             </tr>
@@ -27,7 +60,7 @@
                 <td class="{% if t.type == 'income' %}text-success{% elif t.type == 'expense' %}text-danger{% endif %}">{% if t.category %}{{ t.category.name }}{% else %}Без категории{% endif %}</td>
                 <td class="{% if t.type == 'income' %}text-success{% elif t.type == 'expense' %}text-danger{% endif %}">{{ t.description }}</td>
                 <td>
-                        <a href="{% url 'main:transaction_edit' t.id %}" class="{% if t.type == 'income' %}btn btn-sm btn-outline-success{% elif t.type == 'expense' %}btn btn-sm btn-outline-danger{% endif %}">Редактировать</a>
+                    <a href="{% url 'main:transaction_edit' t.id %}" class="{% if t.type == 'income' %}btn btn-sm btn-outline-success{% elif t.type == 'expense' %}btn btn-sm btn-outline-danger{% endif %}">Редактировать</a>
                     <a href="{% url 'main:transaction_delete' t.id %}" class="btn btn-sm btn-outline-dark">Удалить</a>
                 </td>
             </tr>
