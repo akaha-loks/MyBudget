@@ -1,64 +1,179 @@
 {% extends 'main/base.html' %}
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-3 text-center">Отчёты за {{ today }}</h2>
+    <h2 class="mb-3 text-center">Отчёты за {{ today|date:"d.m.Y" }}</h2>
     <hr class="mb-4">
-   <div class="row g-4">
-       <!-- Баланс -->
-       <div class="col-md-4">
-           <a>
-               <div class="card shadow-sm text-center">
-                   <div class="card-body">
-                       <h5 class="card-title">Баланс</h5>
-                       <p class="display-6">{{ balance }} сом</p>
-                   </div>
-               </div>
-           </a>
-       </div>
-            <!-- Доходы -->
-       <div class="col-md-4">
-           <a href="{% url 'main:transaction_add' 'income' %}" class="text-decoration-none">
-               <div class="card shadow-sm text-center">
-                   <div class="card-body">
-                       <h5 class="card-title">Доходы</h5>
-                       <p class="display-6">{{ income }} сом</p>
-                   </div>
-               </div>
-           </a>
-       </div>
-            <!-- Расходы -->
-       <div class="col-md-4">
-           <a href="{% url 'main:transaction_add' 'expense' %}" class="text-decoration-none">
-               <div class="card shadow-sm text-center">
-                   <div class="card-body">
-                       <h5 class="card-title">Расходы</h5>
-                       <p class="display-6">{{ expenses }} сом</p>
-                   </div>
-               </div>
-           </a>
-       </div>
-    </div> <!-- закрывает row -->
+
+    <!-- Карточки: баланс, доходы, расходы -->
+    <div class="row g-4 text-center">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Баланс</h5>
+                    <p class="display-6">{{ balance }} сом</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'main:transaction_add' 'income' %}" class="text-decoration-none">
+                <div class="card shadow-sm border-success">
+                    <div class="card-body">
+                        <h5 class="card-title">Доходы</h5>
+                        <p class="display-6">{{ income }} сом</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'main:transaction_add' 'expense' %}" class="text-decoration-none">
+                <div class="card shadow-sm border-danger">
+                    <div class="card-body">
+                        <h5 class="card-title">Расходы</h5>
+                        <p class="display-6">{{ expenses }} сом</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
 
 
 
-    <h4 class="mt-4">Расходы по категориям</h4>
-    <table class="table table-bordered mt-2">
-        <thead>
-            <tr>
-                <th>Категория</th>
-                <th>Сумма</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in category_data %}
-            <tr>
-                <td>{{ item.category__name }}</td>
-                <td>{{ item.total }} сом</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="2">Нет данных</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+   <!-- Графики доходов и расходов -->
+    <div class="col-12 mt-4">
+        <div class="card shadow-sm">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-center position-relative mb-2">
+                    <h5 class="card-title mb-0 text-center">Доходы и расходы</h5>
+                    <select id="periodSelect" class="form-select w-auto position-absolute end-0" style="top: 0;">
+                        <option value="7" {% if period == 7 %}selected{% endif %}>Неделя</option>
+                        <option value="30" {% if period == 30 %}selected{% endif %}>Месяц</option>
+                        <option value="90" {% if period == 90 %}selected{% endif %}>3 месяца</option>
+                    </select>
+                </div>
+
+                <canvas id="dailyChart" height="150" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Доходы по категориям -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-center mb-3">Доходы по категориям</h5>
+                    <div style="height:200px;">
+                        <canvas id="incomeCategoriesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Расходы по категориям -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-center mb-3">Расходы по категориям</h5>
+                    <div style="height:200px;">
+                        <canvas id="expenseCategoriesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 mt-4  mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-center mb-3">Суммарные доходы и расходы</h5>
+                <canvas id="summaryChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// График: суммарные доходы и расходы
+const ctxSummary = document.getElementById('summaryChart').getContext('2d');
+new Chart(ctxSummary, {
+    type: 'bar',
+    data: {
+        labels: ['Доходы', 'Расходы'],
+        datasets: [{
+            label: 'Сумма (сом)',
+            data: [{{ income }}, {{ expenses }}],
+            backgroundColor: ['rgba(40, 167, 69, 0.7)','rgba(220, 53, 69, 0.7)'],
+            borderColor: ['rgba(40, 167, 69, 1)','rgba(220, 53, 69, 1)'],
+            borderWidth: 1
+        }]
+    },
+    options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+});
+</script>
+
+<script>
+// График: доходы и расходы по дням
+const ctxDaily = document.getElementById('dailyChart').getContext('2d');
+new Chart(ctxDaily, {
+    type: 'line',
+    data: {
+        labels: {{ labels|safe }},
+        datasets: [
+            { label: 'Доходы', data: {{ income_data|safe }}, borderColor: 'rgba(40, 167, 69, 1)', backgroundColor: 'rgba(40, 167, 69, 0.2)', tension: 0.3 },
+            { label: 'Расходы', data: {{ expense_data|safe }}, borderColor: 'rgba(220, 53, 69, 1)', backgroundColor: 'rgba(220, 53, 69, 0.2)', tension: 0.3 }
+        ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true }, x: { ticks: { maxRotation: 90, minRotation: 45 } } } }
+});
+</script>
+<script>
+document.getElementById('periodSelect').addEventListener('change', function() {
+    const period = this.value;
+    const url = new URL(window.location.href);
+    url.searchParams.set('period', period);
+    window.location.href = url;  // перезагружаем страницу с новым периодом
+});
+</script>
+<script>
+const ctxIncomeCat = document.getElementById('incomeCategoriesChart').getContext('2d');
+new Chart(ctxIncomeCat, {
+    type: 'doughnut',
+    data: {
+        labels: {{ income_labels|safe }},
+        datasets: [{
+            data: {{ income_totals|safe }},
+            backgroundColor: [
+                '#28a745', '#218838', '#71c88f', '#a2d9b1', '#4caf50'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+
+const ctxExpenseCat = document.getElementById('expenseCategoriesChart').getContext('2d');
+new Chart(ctxExpenseCat, {
+    type: 'doughnut',
+    data: {
+        labels: {{ expense_labels|safe }},
+        datasets: [{
+            data: {{ expense_totals|safe }},
+            backgroundColor: [
+                '#dc3545', '#c82333', '#e57373', '#f1948a', '#ff6f61'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+</script>
 {% endblock %}

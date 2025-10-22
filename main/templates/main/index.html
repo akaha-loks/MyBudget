@@ -11,7 +11,7 @@
             <!-- Баланс -->
             <div class="col-md-4">
                 <a href="{% url 'main:reports' %}" class="text-decoration-none">
-                    <div class="card shadow-sm text-center">
+                    <div class="card shadow-sm text-center border-primary">
                         <div class="card-body">
                             <h5 class="card-title">Баланс</h5>
                             <p class="display-6">{{ balance }} сом</p>
@@ -23,7 +23,7 @@
             <!-- Доходы -->
             <div class="col-md-4">
                 <a href="{% url 'main:transaction_add' 'income' %}" class="text-decoration-none">
-                    <div class="card shadow-sm text-center">
+                    <div class="card shadow-sm text-center border-success">
                         <div class="card-body">
                             <h5 class="card-title">Доходы</h5>
                             <p class="display-6">{{ income }} сом</p>
@@ -35,7 +35,7 @@
             <!-- Расходы -->
             <div class="col-md-4">
                 <a href="{% url 'main:transaction_add' 'expense' %}" class="text-decoration-none">
-                    <div class="card shadow-sm text-center">
+                    <div class="card shadow-sm text-center border-danger">
                         <div class="card-body">
                             <h5 class="card-title">Расходы</h5>
                             <p class="display-6">{{ expenses }} сом</p>
@@ -154,10 +154,56 @@
                     </div>
                 </div>
             </div>
+            <!-- Мини-график доходов и расходов за неделю -->
+            <div class="col-12 mt-4 mb-4">
+                <a href="{% url 'main:reports' %}" class="text-decoration-none">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-2">
+                            <h5 class="card-title text-center mb-2">Доходы и расходы за неделю</h5>
+                            <div style="height:200px;"> <!-- маленькая высота -->
+                                <canvas id="miniWeekChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </div> <!-- закрывает row -->
     {% else %}
         <p>Вы не вошли в систему.</p>
         <a href="{% url 'main:login' %}" class="btn btn-dark">Войти</a>
     {% endif %}
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctxMini = document.getElementById('miniWeekChart').getContext('2d');
+new Chart(ctxMini, {
+    type: 'line',
+    data: {
+        labels: {{ week_labels|safe }},
+        datasets: [
+            {
+                label: 'Доходы',
+                data: {{ week_income_data|safe }},
+                borderColor: 'rgba(40, 167, 69, 1)',
+                backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                tension: 0.3
+            },
+            {
+                label: 'Расходы',
+                data: {{ week_expense_data|safe }},
+                borderColor: 'rgba(220, 53, 69, 1)',
+                backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                tension: 0.3
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'top' } },
+        scales: { y: { beginAtZero: true }, x: { ticks: { maxRotation: 0, minRotation: 0 } } }
+    }
+});
+</script>
 {% endblock %}

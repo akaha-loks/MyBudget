@@ -7,12 +7,11 @@ from .models import Goal
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from .models import Transaction, Category
-from datetime import date, datetime as dt, datetime, timedelta
+from datetime import date, datetime, timedelta
 from django.contrib import messages
 from django.urls import reverse
 from decimal import Decimal, InvalidOperation
 import time
-
 
 
 @login_required
@@ -31,8 +30,28 @@ def index(request):
     # Последние 10 транзакций
     transactions = Transaction.objects.filter(user=user).order_by('-date')[:10]
 
-    # выборку целей
+    # выборка целей
     goals = Goal.objects.filter(user=user).order_by('deadline')[:5]
+
+    # --- Данные для мини-графика доходов/расходов за неделю ---
+    today = date.today()
+    week_ago = today - timedelta(days=6)  # последние 7 дней включая сегодня
+    last_week_dates = [(week_ago + timedelta(days=i)) for i in range(7)]
+    labels = [d.strftime('%d.%m') for d in last_week_dates]
+
+    income_data = []
+    expense_data = []
+    for d in last_week_dates:
+        start_of_day = timezone.make_aware(datetime.combine(d, datetime.min.time()))
+        end_of_day = timezone.make_aware(datetime.combine(d, datetime.max.time()))
+        day_income = \
+        Transaction.objects.filter(user=user, type='income', date__range=(start_of_day, end_of_day)).aggregate(
+            Sum('amount'))['amount__sum'] or 0
+        day_expense = \
+        Transaction.objects.filter(user=user, type='expense', date__range=(start_of_day, end_of_day)).aggregate(
+            Sum('amount'))['amount__sum'] or 0
+        income_data.append(day_income)
+        expense_data.append(day_expense)
 
     return render(request, 'main/index.html', {
         'balance': balance,
@@ -42,6 +61,9 @@ def index(request):
         'expense_percent': expense_percent,
         'transactions': transactions,
         'goals': goals,
+        'week_labels': labels,
+        'week_income_data': [float(x) for x in income_data],
+        'week_expense_data': [float(x) for x in expense_data],
     })
 
 
@@ -182,27 +204,63 @@ def goal_delete(request, goal_id):
 @login_required
 def reports(request):
     user = request.user
+    period = int(request.GET.get('period', 30))
+    today = date.today()
+    start_date = today - timedelta(days=period-1)
 
-    # Суммируем доходы и расходы
-    income = Transaction.objects.filter(user=user, type='income').aggregate(Sum('amount'))['amount__sum'] or 0
-    expenses = Transaction.objects.filter(user=user, type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    # Транзакции за выбранный период
+    transactions = Transaction.objects.filter(user=user, date__date__range=[start_date, today])
+
+    # Данные по дням
+    labels = []
+    income_data = []
+    expense_data = []
+
+    for i in range(period):
+        day = start_date + timedelta(days=i)
+        labels.append(day.strftime('%d.%m'))
+        daily_income = transactions.filter(type='income', date__date=day).aggregate(Sum('amount'))['amount__sum'] or 0
+        daily_expense = transactions.filter(type='expense', date__date=day).aggregate(Sum('amount'))['amount__sum'] or 0
+        income_data.append(float(daily_income))
+        expense_data.append(float(daily_expense))
+
+    # Суммарные значения
+    income = sum(income_data)
+    expenses = sum(expense_data)
     balance = income - expenses
 
-    # Суммируем расходы по категориям
-    category_data = (
-        Transaction.objects
-        .filter(user=user, type='expense')
+    # Данные по категориям
+    income_categories = (
+        transactions.filter(type='income')
         .values('category__name')
         .annotate(total=Sum('amount'))
-        .order_by('-total')
     )
+    expense_categories = (
+        transactions.filter(type='expense')
+        .values('category__name')
+        .annotate(total=Sum('amount'))
+    )
+
+    # Преобразуем в списки для Chart.js
+    income_labels = [item['category__name'] for item in income_categories]
+    income_totals = [float(item['total']) for item in income_categories]
+
+    expense_labels = [item['category__name'] for item in expense_categories]
+    expense_totals = [float(item['total']) for item in expense_categories]
 
     context = {
         'income': income,
         'expenses': expenses,
         'balance': balance,
-        'category_data': category_data,
-        'today': date.today(),
+        'labels': labels,
+        'income_data': income_data,
+        'expense_data': expense_data,
+        'today': today,
+        'period': period,
+        'income_labels': income_labels,
+        'income_totals': income_totals,
+        'expense_labels': expense_labels,
+        'expense_totals': expense_totals,
     }
     return render(request, 'main/reports.html', context)
 
