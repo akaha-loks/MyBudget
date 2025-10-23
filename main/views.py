@@ -12,6 +12,9 @@ from django.contrib import messages
 from django.urls import reverse
 from decimal import Decimal, InvalidOperation
 import time
+from captcha.models import CaptchaStore
+from captcha.helpers import captcha_image_url
+
 
 
 @login_required
@@ -72,17 +75,40 @@ def user_register(request):
         nickname = request.POST.get('nickname')
         username = request.POST.get('username')
         password = request.POST.get('password')
+        captcha_key = request.POST.get('captcha_0')
+        captcha_value = request.POST.get('captcha_1')
+
+        # Проверка капчи
+        try:
+            captcha = CaptchaStore.objects.get(hashkey=captcha_key)
+            if captcha.response != captcha_value.lower():
+                raise Exception
+        except Exception:
+            new_key = CaptchaStore.generate_key()
+            new_image = captcha_image_url(new_key)
+            return render(request, 'main/auth/register.html', {
+                'error': 'Неверно введена капча',
+                'captcha': f'<img src="{new_image}" alt="captcha"><input type="hidden" name="captcha_0" value="{new_key}"><input type="text" name="captcha_1" class="form-control form-control-sm mt-2" required>'
+            })
+
+        # Проверка email и пароля
         if not re.match(r"[^@]+@[^@]+\.[^@]+", username):
             return render(request, 'main/auth/register.html', {'error': 'Введите корректный email @'})
         if len(password) < 5:
             return render(request, 'main/auth/register.html', {'error': 'Пароль должен быть минимум 5 символов'})
         if User.objects.filter(username=username).exists():
             return render(request, 'main/auth/register.html', {'error': 'Пользователь с таким email уже существует'})
+
         user = User.objects.create_user(username=username, password=password, first_name=nickname)
         login(request, user)
         return redirect('/')
-    return render(request, 'main/auth/register.html')
-
+    else:
+        # Генерируем новую капчу при загрузке страницы
+        new_key = CaptchaStore.generate_key()
+        new_image = captcha_image_url(new_key)
+        return render(request, 'main/auth/register.html', {
+            'captcha': f'<img src="{new_image}" alt="captcha"><input type="hidden" name="captcha_0" value="{new_key}"><input type="text" name="captcha_1" class="form-control form-control-sm mt-2" required>'
+        })
 
 def user_login(request):
     if request.method == 'POST':

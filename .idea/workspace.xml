@@ -6,10 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="1015d755-3187-46d8-bbc0-a1ba09c78fd6" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MyBudget/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/MyBudget/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MyBudget/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/MyBudget/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/main/templates/main/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/templates/main/auth/register.html" beforeDir="false" afterPath="$PROJECT_DIR$/main/templates/main/auth/register.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/templates/main/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/main/templates/main/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/reports.html" beforeDir="false" afterPath="$PROJECT_DIR$/main/templates/main/reports.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -132,6 +133,8 @@
       <workItem from="1760973493286" duration="3464000" />
       <workItem from="1761056715526" duration="12476000" />
       <workItem from="1761156136353" duration="14775000" />
+      <workItem from="1761171221398" duration="61000" />
+      <workItem from="1761229002833" duration="1786000" />
     </task>
     <servers />
   </component>
@@ -143,7 +146,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/MyBudget/settings.py</url>
-          <line>40</line>
+          <line>41</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>
