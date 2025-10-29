@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-import re
 from django.utils import timezone
 from .models import Goal
 from django.contrib.auth.decorators import login_required
@@ -14,6 +13,9 @@ from decimal import Decimal, InvalidOperation
 import time
 from captcha.models import CaptchaStore
 from captcha.helpers import captcha_image_url
+from django.core.validators import validate_email
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 
 
@@ -78,37 +80,56 @@ def user_register(request):
         captcha_key = request.POST.get('captcha_0')
         captcha_value = request.POST.get('captcha_1')
 
-        # Проверка капчи
+        # --- Проверка капчи ---
         try:
             captcha = CaptchaStore.objects.get(hashkey=captcha_key)
             if captcha.response != captcha_value.lower():
                 raise Exception
         except Exception:
-            new_key = CaptchaStore.generate_key()
-            new_image = captcha_image_url(new_key)
-            return render(request, 'main/auth/register.html', {
-                'error': 'Неверно введена капча',
-                'captcha': f'<img src="{new_image}" alt="captcha"><input type="hidden" name="captcha_0" value="{new_key}"><input type="text" name="captcha_1" class="form-control form-control-sm mt-2" required>'
-            })
+            return _render_with_captcha(request, error='Неверно введена капча')
 
-        # Проверка email и пароля
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", username):
-            return render(request, 'main/auth/register.html', {'error': 'Введите корректный email @'})
-        if len(password) < 5:
-            return render(request, 'main/auth/register.html', {'error': 'Пароль должен быть минимум 5 символов'})
+        # --- Проверка email ---
+        try:
+            validate_email(username)
+        except ValidationError:
+            return _render_with_captcha(request, error='Введите корректный адрес электронной почты @')
+
+        # --- Проверка уникальности пользователя ---
         if User.objects.filter(username=username).exists():
-            return render(request, 'main/auth/register.html', {'error': 'Пользователь с таким email уже существует'})
+            return _render_with_captcha(request, error='Пользователь с таким email уже существует')
 
-        user = User.objects.create_user(username=username, password=password, first_name=nickname)
+        # --- Проверка сложности пароля ---
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            return _render_with_captcha(request, error=' '.join(e.messages))
+
+        # --- Создание пользователя ---
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            first_name=nickname
+        )
         login(request, user)
         return redirect('/')
-    else:
-        # Генерируем новую капчу при загрузке страницы
-        new_key = CaptchaStore.generate_key()
-        new_image = captcha_image_url(new_key)
-        return render(request, 'main/auth/register.html', {
-            'captcha': f'<img src="{new_image}" alt="captcha"><input type="hidden" name="captcha_0" value="{new_key}"><input type="text" name="captcha_1" class="form-control form-control-sm mt-2" required>'
-        })
+
+    # --- Если просто открыли страницу ---
+    return _render_with_captcha(request)
+
+
+# 👇 Вспомогательная функция, чтобы не копировать капчу 100 раз
+def _render_with_captcha(request, error=None):
+    new_key = CaptchaStore.generate_key()
+    new_image = captcha_image_url(new_key)
+    return render(request, 'main/auth/register.html', {
+        'error': error,
+        'captcha': (
+            f'<img src="{new_image}" alt="captcha">'
+            f'<input type="hidden" name="captcha_0" value="{new_key}">'
+            f'<input type="text" name="captcha_1" class="form-control form-control-sm mt-2" required>'
+        )
+    })
+
 
 def user_login(request):
     if request.method == 'POST':
